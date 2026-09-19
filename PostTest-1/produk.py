@@ -27,7 +27,7 @@ class Produk:
     def harga(self, harga_baru):
         if harga_baru <= 0:
             raise ValueError("[!] Error: Harga tidak boleh negatif")
-        elif not isinstance(harga_baru, float):
+        elif not isinstance(harga_baru, int, float):
             raise TypeError("[!] Error: Harga harus berupa angka")
         self.__harga = harga_baru
 
@@ -43,14 +43,6 @@ class Produk:
             raise TypeError("[!] Error: Stok harus berupa angka")
         self.__stok = stok_baru
 
-    def info_produk(self):
-        print(f"""
-    Nama     : {self.nama}
-    Kategori : {self.__kategori}
-    Harga    : Rp{self.__harga}
-    Stok     : {self.__stok}
-    """)
-
     @classmethod
     def info_toko(cls):
         print(f"Nama Toko: {cls.nama_toko}")
@@ -60,6 +52,21 @@ class Produk:
         if jumlah <= 0:
             raise ValueError("[!] Error: Jumlah stok yang ditambahkan tidak boleh negatif")
         self.__stok += jumlah
+
+    def kurangi_stok(self, jumlah):
+        if jumlah <= 0:
+            raise ValueError("[!] Error: Jumlah stok yang dikurangi tidak boleh negatif")
+        elif jumlah > self.__stok:
+            raise ValueError("[!] Error: Jumlah stok yang dikurangi melebihi stok yang tersedia")
+        self.__stok -= jumlah
+
+    def info_produk(self):
+            print(f"""
+        Nama     : {self.nama}
+        Kategori : {self.__kategori}
+        Harga    : Rp{self.__harga}
+        Stok     : {self.__stok}
+        """)
 
 serum = Produk("Serum", "VST Plugin", 299999, 100)
 Produk.info_toko()
