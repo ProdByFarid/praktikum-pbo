@@ -61,13 +61,18 @@ class Produk:
         self.__stok -= jumlah
 
     def info_produk(self):
-            print(f"""
-        Nama     : {self.nama}
-        Kategori : {self.__kategori}
-        Harga    : Rp{self.__harga}
-        Stok     : {self.__stok}
-        """)
+        print(f"""
+    Nama     : {self.nama}
+    Kategori : {self.__kategori}
+    Harga    : Rp{self.__harga}
+    Stok     : {self.__stok}""")
 
-serum = Produk("Serum", "VST Plugin", 299999, 100)
-Produk.info_toko()
-serum.info_produk()
+produk = [
+    Produk("Serum", "VST Plugin", 1000000, 10),
+    Produk("Drum X", "Drum Kit", 500000, 10)
+]
+
+# print("\n=====================================")
+# for item in produk:
+#     item.info_produk()
+# print("\n=====================================\n")
