@@ -16,8 +16,8 @@ class Transaksi:
         self.pajak_transaksi = Transaksi.pajak
         self.__status = "Pending"
         self.jumlah = jumlah
-        self.id_transaksi = f"SDP-{Transaksi.jumlah_transaksi}"
         Transaksi.jumlah_transaksi += 1
+        self.id_transaksi = f"SDP-{Transaksi.jumlah_transaksi}"
 
     @property
     def jumlah(self):
@@ -44,7 +44,7 @@ class Transaksi:
     @staticmethod
     def hitung_total_harga(harga_satuan, jumlah, pajak):
         subtotal = harga_satuan * jumlah
-        return subtotal * pajak
+        return subtotal + subtotal * pajak
 
     @classmethod
     def info_transaksi(cls):
