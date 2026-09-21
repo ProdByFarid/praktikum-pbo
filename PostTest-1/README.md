@@ -310,10 +310,3 @@ Isi riwayat: ['SDP-1', 'SDP-2']
 | Setter data tidak valid | 9, 10, 11 |
 
 ---
-
-## 7. Catatan Penerapan Enkapsulasi
-
-- Semua data penting (`__harga`, `__stok`, `__saldo`, `__password`, `__status`, `__jumlah`) bersifat **private** sehingga tidak bisa diubah sembarangan dari luar class.
-- Perubahan data hanya lewat **property dan setter** yang memiliki validasi.
-- `total_bayar` dan `status` hanya punya **getter**, jadi `trx.total_bayar = 1` ditolak Python dengan `AttributeError`.
-- Pengurangan stok dilakukan oleh method milik `Produk` sendiri (`kurangi_stok`), bukan oleh class lain. `Transaksi` hanya **memanggil** method tersebut.
