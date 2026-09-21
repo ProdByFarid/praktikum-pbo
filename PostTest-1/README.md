@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Nama** | [Isi nama lengkap] |
-| **NIM** | [Isi NIM] |
-| **Kelas** | [Isi kelas] |
-| **Mata Kuliah** | Pemrograman Berorientasi Objek (Python) |
+| **Nama** | Muhamad Farid Al Mubarok |
+| **NIM** | 2509106087 |
+| **Kelas** | B2'25 |
+| **Mata Kuliah** | Pemrograman Berorientasi Objek |
 
 ---
 
@@ -22,26 +22,6 @@ Program dibuat dengan pendekatan OOP dan memakai materi tiga modul:
 | 3 | Encapsulation & Property | Atribut private (`__`), `@property`, `@nama.setter` dengan validasi |
 
 Ketiga class **berdiri sendiri** (tanpa inheritance) dan saling berinteraksi lewat objek.
-
-### Alur pembelian
-
-```
-Pengguna.beli_produk(produk, jumlah)
-   |
-   +--> membuat objek Transaksi(produk, jumlah, nama_pembeli)
-   |       - mengambil harga dari objek Produk
-   |       - menghitung total bayar (harga x jumlah + pajak)
-   |
-   +--> mengecek saldo Pengguna cukup atau tidak
-   |
-   +--> Transaksi.proses()
-   |       - memanggil Produk.kurangi_stok(jumlah)
-   |       - status menjadi "Berhasil", dicatat di riwayat
-   |
-   +--> saldo Pengguna dikurangi total bayar
-```
-
-Urutannya sengaja **cek dulu, baru ubah data**, supaya saldo tidak terpotong kalau stok ternyata kurang.
 
 ---
 
