@@ -1,3 +1,15 @@
+class MutasiSaldo:
+    def __init__(self, id_mutasi, tipe, nominal, keterangan):
+        self.id_mutasi = id_mutasi
+        self.tipe = tipe
+        self.nominal = nominal
+        self.keterangan = keterangan
+
+    def __str__(self):
+        simbol = "+" if self.tipe == "KREDIT" else "-"
+        return f"[{self.id_mutasi}] {self.tipe:<6} {simbol}Rp{self.nominal:,.0f} | Ket: {self.keterangan}"
+
+
 class Pengguna:
     jumlah_pengguna = 0
     daftar_pengguna = []
@@ -6,8 +18,12 @@ class Pengguna:
         self.nama = nama
         self.__password = password
         self.__saldo = saldo
+        self.__riwayat_mutasi = []
         Pengguna.daftar_pengguna.append(self)
         Pengguna.jumlah_pengguna += 1
+
+        if saldo > 0:
+            self._catat_mutasi("KREDIT", saldo, "Saldo awal akun")
 
     @property
     def saldo(self):
@@ -37,11 +53,16 @@ class Pengguna:
                 return pengguna
         print("[!] Login gagal. Username atau password salah.")
         return None
-        
+
+    def _catat_mutasi(self, tipe, nominal, keterangan):
+        id_baru = f"MUT-{len(self.__riwayat_mutasi) + 1:04d}"
+        self.__riwayat_mutasi.append(MutasiSaldo(id_baru, tipe, nominal, keterangan))
+
     def tambah_saldo(self, jumlah):
         if jumlah <= 0:
             raise ValueError("[!] Error: Jumlah saldo yang ditambahkan tidak boleh negatif")
         self.__saldo += jumlah
+        self._catat_mutasi("KREDIT", jumlah, "Top up saldo")
 
     def beli_produk(self, produk, jumlah):
         if not isinstance(produk, Produk):
@@ -51,21 +72,30 @@ class Pengguna:
         if jumlah > produk.stok:
             raise ValueError(f"[!] Error: Stok tidak cukup (sisa {produk.stok})")
 
-        transaksi = Transaksi(produk, jumlah, self.nama)
-
-        if transaksi.total_bayar > self.saldo:
+        total = Transaksi.hitung_total_harga(produk.harga, jumlah, Transaksi.pajak)
+        if total > self.__saldo:
             raise ValueError("[!] Error: Saldo tidak cukup")
 
+        transaksi = Transaksi(produk, jumlah, self.nama)
         transaksi.proses()
-        self.saldo -= transaksi.total_bayar
+        self.__saldo -= transaksi.total_bayar
+        self._catat_mutasi("DEBET", transaksi.total_bayar,
+                           f"Beli {produk.nama} ({transaksi.id_transaksi})")
         return transaksi
+
+    def cetak_mutasi(self):
+        print(f"\n  Mutasi Saldo: {self.nama}")
+        print(f"  Saldo Akhir : Rp{self.__saldo:,.0f}")
+        for mutasi in self.__riwayat_mutasi:
+            print(f"    {mutasi}")
 
     def info_pengguna(self):
         print(f"""
     ===== INFO PENGGUNA =====
     Nama    : {self.nama}
-    Saldo   : Rp{self.__saldo}
+    Saldo   : Rp{self.__saldo:,.0f}
         """)
+
 
 class Produk:
     nama_toko = "SoundPlam"
@@ -75,8 +105,8 @@ class Produk:
     def __init__(self, nama, kategori, harga, stok):
         self.nama = nama
         self.__kategori = kategori
-        self.__harga = harga
-        self.__stok = stok
+        self._harga = harga
+        self._stok = stok
         Produk.jumlah_produk += 1
 
     @property
@@ -91,7 +121,7 @@ class Produk:
 
     @property
     def harga(self):
-        return self.__harga
+        return self._harga
 
     @harga.setter
     def harga(self, harga_baru):
@@ -99,11 +129,11 @@ class Produk:
             raise TypeError("[!] Error: Harga harus berupa angka")
         if harga_baru < 0:
             raise ValueError("[!] Error: Harga tidak boleh negatif")
-        self.__harga = harga_baru
+        self._harga = harga_baru
 
     @property
     def stok(self):
-        return self.__stok
+        return self._stok
 
     @stok.setter
     def stok(self, stok_baru):
@@ -111,7 +141,7 @@ class Produk:
             raise TypeError("[!] Error: Stok harus berupa angka")
         if stok_baru < 0:
             raise ValueError("[!] Error: Stok tidak boleh negatif")
-        self.__stok = stok_baru
+        self._stok = stok_baru
 
     @classmethod
     def info_toko(cls):
@@ -126,7 +156,7 @@ class Produk:
     def kurangi_stok(self, jumlah):
         if not isinstance(jumlah, int) or jumlah <= 0:
             raise ValueError("[!] Error: Jumlah stok yang dikurangi tidak boleh negatif")
-        if jumlah > self.__stok:
+        if jumlah > self._stok:
             raise ValueError("[!] Error: Jumlah stok yang dikurangi melebihi stok yang tersedia")
         self.stok -= jumlah
 
@@ -134,8 +164,64 @@ class Produk:
         print(f"""
     Nama     : {self.nama}
     Kategori : {self.__kategori}
-    Harga    : Rp{self.__harga}
-    Stok     : {self.__stok}""")
+    Harga    : Rp{self._harga:,.0f}
+    Stok     : {self._stok}""")
+
+
+class VST(Produk):
+    def __init__(self, nama, harga, stok, format_plugin, jenis_plugin):
+        super().__init__(nama, "VST Plugin", harga, stok)
+        self.format_plugin = format_plugin
+        self.jenis_plugin = jenis_plugin
+
+    def info_produk(self):
+        super().info_produk()
+        status = "Habis" if self._stok == 0 else ("Hampir habis" if self._stok <= 5 else "Tersedia")
+        print(f"    Format   : {self.format_plugin}")
+        print(f"    Jenis    : {self.jenis_plugin}")
+        print(f"    Lisensi  : {status}")
+
+
+class DrumKit(Produk):
+    def __init__(self, nama, harga, stok, jumlah_sample, genre):
+        super().__init__(nama, "Drum Kit", harga, stok)
+        self.jumlah_sample = jumlah_sample
+        self.genre = genre
+
+    def info_produk(self):
+        super().info_produk()
+        harga_per_sample = self._harga / self.jumlah_sample
+        print(f"    Sample   : {self.jumlah_sample} file")
+        print(f"    Genre    : {self.genre}")
+        print(f"    Per sample: Rp{harga_per_sample:,.0f}")
+
+
+class Toko:
+    def __init__(self, nama_toko):
+        self.nama_toko = nama_toko
+        self._daftar_produk = []
+
+    @property
+    def total_produk(self):
+        return len(self._daftar_produk)
+
+    def tambah_produk(self, produk):
+        if not isinstance(produk, Produk):
+            raise ValueError("[!] Error: Produk tidak valid")
+        self._daftar_produk.append(produk)
+        print(f"  [+] {produk.nama} dijual di {self.nama_toko}")
+
+    def hapus_produk(self, nama):
+        awal = len(self._daftar_produk)
+        self._daftar_produk = [p for p in self._daftar_produk if p.nama != nama]
+        if len(self._daftar_produk) < awal:
+            print(f"  [-] {nama} ditarik dari {self.nama_toko}")
+
+    def tampilkan_katalog(self):
+        print(f"\n  ===== KATALOG {self.nama_toko} ({self.total_produk} produk) =====")
+        for produk in self._daftar_produk:
+            produk.info_produk()
+
 
 class Transaksi:
     pajak = 0.11
@@ -187,7 +273,7 @@ class Transaksi:
     def info_transaksi(cls):
         print(f"Transaksi dibuat     : {cls.jumlah_transaksi}")
         print(f"Transaksi berhasil   : {len(cls.riwayat)}")
-        print(f"Total pendapatan     : Rp{cls.total_pendapatan}")
+        print(f"Total pendapatan     : Rp{cls.total_pendapatan:,.0f}")
 
     def proses(self):
         if self.__status != "Pending":
@@ -203,11 +289,11 @@ class Transaksi:
     def cetak_struk(self):
         print(f"""
         ===== STRUK {self.id_transaksi} =====
-    Pembeli      : {self.nama_pembeli}
-    Produk       : {self.produk.nama}
-    Jumlah       : {self.jumlah}
-    Harga satuan : Rp{self.harga_satuan}
-    Pajak        : {self.pajak_transaksi * 100}%
-    Total bayar  : Rp{self.total_bayar}
-    Status       : {self.status}
+        Pembeli      : {self.nama_pembeli}
+        Produk       : {self.produk.nama}
+        Jumlah       : {self.jumlah}
+        Harga satuan : Rp{self.harga_satuan:,.0f}
+        Pajak        : {self.pajak_transaksi * 100:.0f}%
+        Total bayar  : Rp{self.total_bayar:,.0f}
+        Status       : {self.status}
         """)
